@@ -74,16 +74,75 @@ In advanced stages, the focus shifts to improving query performance. Some optimi
 select track from spotify where stream>1000000000
 ```
 2. List all albums along with their respective artists.
+```sql
+select distinct album, artist from spotify order by 1
+```
+
 3. Get the total number of comments for tracks where `licensed = TRUE`.
+```sql
+select sum(comments) from spotify where licensed=true
+
+```
+
 4. Find all tracks that belong to the album type `single`.
+```sql
+select track from spotify where album_type='single'
+```
+
 5. Count the total number of tracks by each artist.
+```sql
+select 
+	artist,
+	count(*) as total_songs
+from spotify group by artist
+```
+
 
 ### Medium Level
 1. Calculate the average danceability of tracks in each album.
+```sql
+select * from spotify
+select 
+	   album,  ---1
+       avg(danceability)  ---2
+from spotify 
+group by album
+order by 2 desc
+```
 2. Find the top 5 tracks with the highest energy values.
+```sql
+select track,
+		max(energy)
+from spotify 
+group by 1 
+order by 2 
+desc limit 5
+```
 3. List all tracks along with their views and likes where `official_video = TRUE`.
+```sql
+select track,sum(views) as total_views,sum(likes) as total_likes from spotify where official_video='true' group by 1
+```
 4. For each album, calculate the total views of all associated tracks.
+```sql
+select album,
+	   track,
+		sum(views)
+from spotify
+group by 1,2
+```
 5. Retrieve the track names that have been streamed on Spotify more than YouTube.
+```sql
+select * from
+(select track,
+	   -- most_played_on,
+	   COALESCE(SUM(CASE WHEN most_played_on='Youtube' THEN stream END),0)
+	   as most_streamed_youtube,
+	   COALESCE(SUM(CASE WHEN most_played_on='Spotify' THEN stream END),0)
+	   as most_streamed_spotify
+from spotify
+group by 1) as T1 where
+most_streamed_spotify> most_streamed_youtube AND most_streamed_youtube <> 0
+```
 
 ### Advanced Level
 1. Find the top 3 most-viewed tracks for each artist using window functions.
